@@ -1,3 +1,5 @@
+## This is the main R script
+
 # load the libraries
 library(lattice)
 
