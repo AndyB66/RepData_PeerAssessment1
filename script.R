@@ -1,15 +1,3 @@
-# Reproducible Research: Peer Assessment 1
-
-```{r echo=FALSE}
-options(scipen = 8, digits = 2)
-Sys.setlocale(category = "LC_TIME", locale = "us_US")
-```
-
-## Loading and preprocessing the data
-
-First we load the *lattice* library (useful for some further plots), then unzip the compressed dataset (*activity.zip*) and load the actual data (*activity.csv*) into *data* dataframe. Some postprocessing (converting *date* column to *Date* class) is necessary.
-
-```{r setoptions,echo=TRUE}
 # load the libraries
 library(lattice)
 
@@ -17,17 +5,12 @@ library(lattice)
 unzip("activity.zip")
 data <- read.csv("activity.csv")
 data$date <- as.Date(data$date)
-```
 
-## What is mean total number of steps taken per day?
-
-The following picture shows a histogram of the total number of steps taken each day (but first we need to summarize the number of steps over the whole day).
-
-```{r}
 # calculate total number of steps taken per day
 spd <- aggregate(steps ~ date, data, sum)
 
 # make a histogram of the total number of steps taken each day
+par(mfcol = c(1, 1))
 hist(spd$steps,
      col = "blue",
      main = "Total number of steps taken each day",
@@ -36,15 +19,7 @@ hist(spd$steps,
 # calculate the mean and median total number of steps taken per day
 spd_mean <- mean(spd$steps)
 spd_median <- median(spd$steps)
-```
 
-The **mean** total number of steps taken per day is equal to **`r spd_mean`** and its **median** amounts to **`r spd_median`**.
-
-## What is the average daily activity pattern?
-
-The following plot shows the daily activity pattern: it is a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). We have to first average the number of steps in the same interval over all the days.
-
-```{r}
 # calculate the number of steps taken in each 5-minute interval, 
 # averaged across all days
 aspi <- aggregate(steps ~ interval, data, mean)
@@ -61,20 +36,11 @@ plot(type = "l", aspi$interval, aspi$steps,
 # (and the number of steps, too)
 int_max <- aspi[which.max(aspi$steps), 1]
 aspi_max <- max(aspi$steps)
-```
 
-The interval **\#`r int_max`** contains the **maximum number of steps** (on average across all the days in the dataset), i.e. **`r aspi_max`** steps.
-
-## Imputing missing values
-
-```{r}
 # calculate the total number of missing values in the dataset
+
 na_rows <- sum(is.na(data$steps))
-```
 
-There are total **`r na_rows` missing values** in our data set. The following code prepares a new data set (called *data_imp*) with missing values replaced with the daily-averaged number of steps for a given 5-minute interval.
-
-```{r}
 # prepare a new data set with imputed NA values
 ## add column with an daily-averaged number of steps for a given interval
 ## (will be used later for substitution of NA values)
@@ -87,11 +53,7 @@ data_imp$steps.x[data_na] <- data_imp$steps.y[data_na]
 row.names(data_imp) <- 1:nrow(data_imp)
 colnames(data_imp)[2] <- "steps"
 data_imp$steps.y <- NULL
-```
 
-We plot again a histogram of the total number of steps taken each day (as previously summarizing first the number of steps over the whole day).
-
-```{r}
 # calculate total number of steps taken per day
 spd_imp <- aggregate(steps ~ date, data_imp, sum)
 
@@ -105,13 +67,7 @@ hist(spd_imp$steps,
 # calculate the mean and median total number of steps taken per day
 spd_imp_mean <- mean(spd_imp$steps)
 spd_imp_median <- median(spd_imp$steps)
-```
 
-The **mean** total number of steps taken per day has not changed after imputing data and is equal to **`r spd_imp_mean`**, but its **median** now amounts to **`r spd_imp_median`**.
-
-The following plot shows differences between the original data and data with imputed NA values. One can see, that imputing the data changes the estimates of the total daily number of steps.
-
-```{r}
 # calculate and plot the impact of imputing missing data on the estimates 
 # of the total daily number of steps
 
@@ -127,27 +83,16 @@ lines(spd_imp$date, spd_imp$steps, col = "green")
 legend("topleft", c("Original data", "Imputed data"),
        lty = rep(1, 2),
        col = c("blue", "green"))
-```
 
-## Are there differences in activity patterns between weekdays and weekends?
-
-First we add the column to the *data_imp* dataset, containing a new factor variable (*day*) in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
-
-```{r}
-# create a new factor variable (day) in the dataset with two levels -- 
-# "weekday" and "weekend" indicating whether a given date is a weekday 
-# or weekend day
+# create a new factor variable in the dataset with two levels -- "weekday" 
+# and "weekend" indicating whether a given date is a weekday or weekend day.
 
 data_imp <- cbind(data_imp, "")
 colnames(data_imp)[4] <- "day"
+Sys.setlocale(category = "LC_TIME", locale = "us_US")
 data_imp[, 4] <- "weekday"
-data_imp[weekdays(data_imp$date) %in% c("Saturday", "Sunday"), 4] <-"weekend"
-```
+data_imp[weekdays(data_imp$date) %in% c("Saturday", "Sunday"), 4] <- "weekend"
 
-The following plot shows the daily activity pattern, for weekends and weekdays separately: it is a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). We have to first average the number of steps in 
-the same interval over all the weekends and (separately) weekdays.
-
-```{r}
 # make a panel plot
 aspi_imp <- aggregate(steps ~ interval + day, data_imp, mean)
 p <- xyplot(steps ~ interval | day, 
@@ -158,6 +103,3 @@ p <- xyplot(steps ~ interval | day,
             ylab = "Number of steps",
             main = "Average daily activity pattern")
 print(p)
-```
-
-One can see substantial differences between both activity patterns.
